@@ -11,7 +11,10 @@ import java.sql.PreparedStatement;
 import db.DbException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.dao.VendedorDao;
@@ -49,7 +52,7 @@ public class VendedorDaoJDBC implements VendedorDao{
     
 
     @Override
-    public Vendedor findById(Integer id) {
+    public Vendedor findById(Integer id) { /*Vai buscar por id*/
         PreparedStatement st = null;
         ResultSet rs = null;
             try{
@@ -59,7 +62,7 @@ public class VendedorDaoJDBC implements VendedorDao{
                     +"FROM Vendedor INNER JOIN Departamento "  
                     +"ON Vendedor.DepartamentoId = departamento.Id "  
                     +"WHERE vendedor.id = ?"
-                ); /*Quando a consulta for muito grande e não tiver como fazer na mesma linha. Não esquecer dos espaço ao final de cada linha, se não da erro de sintax no mysql*/
+                ); /*Quando a consulta for muito grande e não tiver como fazer na mesma linha. Não esquecer dos espaços ao final de cada linha, se não da erro de sintax no mysql*/
                 
                 st.setInt(1, id);
                 rs = st.executeQuery(); /*Inicialmente a variavel do tipo rs ResultSet inicial com zero. Quando excutamos uma consulta, ela é armazenada na variavel rs*/
@@ -89,13 +92,87 @@ public class VendedorDaoJDBC implements VendedorDao{
     }
 
     @Override
-    public List<Vendedor> findAll() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Vendedor> findAll() { /*Vai buscar todos os vendedores e ordenar por nome */
+        
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        
+            try{
+            
+                st = conn.prepareStatement(
+                    "select vendedor.*, departamento.nome as DepNome "
+                        +"from vendedor inner join departamento "
+                        +"on vendedor.departamentoId = departamento.Id "
+                        +"group by nome "    
+                );
+                
+                rs = st.executeQuery();
+                
+                
+                /*O NOSSO OBJETIVO A PARTIR DE AGORA É TER MAIS DE UM VENDEDOR APONTANDO PARA O MESMO DEPARTAMENTO.
+                                
+                                Um vendedor pode estar associado a um ou mais departamentos*/
+                
+                
+                /* A solução comentada abaixo é incorreta pois para cada vendedor (cada linha do ResultSet) eu estaria criando um novo departamento
+                
+                List<Vendedor> list = new ArrayList();
+                
+                while(rs.next()){
+                
+                    Departamento dep = instanciandoDepartamento (rs);
+                    Vendedor obj = instanciandoVendedor (rs, dep);
+                    list.add(obj);
+                }
+                return list
+                
+                */
+                
+                List<Vendedor> list = new ArrayList<>(); /*Um vendedor pode estar associando a mais de um departamento. Por este motivo, o obj
+                vendedor terá que ser uma lista. */
+                
+                Map<Integer, Departamento> map = new HashMap<>();/*Criamos um Map vazio com o objetivo abaixo de guardar todo departamento que instaciarmos*/
+                
+                while(rs.next()){ /*Neste caso, o rs pode receber mais de um registro, por isso, ao contrato do que foi feito no metodo acima "Vendedor findById"
+                    onde só é retornado no maximo um registro, ao invez de um if, nós usamos um while para percorrer todos os registros retornados*/
+                
+                    Departamento dep = map.get(rs.getInt("departamentoId")); /*Toda vez que passar pelo while, estamos testando se o departamento já existe.
+                    Fazemos isso buscando no departamento (rs) o id que foi buscado na consulta acima. Se não existir, o map vai retornar nulo pra variavel dep*/
+                    
+                    if(dep == null){ /*Só vamos instanciar o departamento se o dep for nulo. Pois quer dizer que ele não existe ainda*/
+                    
+                        dep = instanciandoDepartamento(rs); /*Instanciando meu departamento a partir do ResultSet (rs)*/
+                        
+                        map.put(rs.getInt("departamentoId"), dep);/*Estamos salvando o departamento dentro do map para que da proxima vez, o if não retorne null pois já existe*/
+                        /*Lembrando que o primeiro valor do mep entre parentese corresponde a chave e o segundo ao valor. Neste caso, dep é o departamento que vou salvar*/
+                    }
+     
+                    Vendedor obj = instanciandoVendedor(rs, dep); /*Instanciando o vendedor apontando para o meu departamento (dep)*/
+                    
+                    list.add(obj);
+                    
+                }
+                
+                return list;
+            
+            }
+            catch(SQLException e){
+            
+                throw new DbException(e.getMessage());
+            
+            }
+            finally {
+            
+                DB.closeStatement(st);
+                DB.closeResulSet(rs);
+            
+            }
+        
     }
 
     private Departamento instanciandoDepartamento(ResultSet rs) throws SQLException { 
-                                                                /*Não vamos tratar a exceções que vão ocorrer abaixa, pois já está sendo
-                                                                tratado acima. Vamos simplesment propagar para eleminar os erros*/
+                                                                /*Não vamos tratar a exceção que vão ocorrer abaixo, pois já está sendo
+                                                                tratada acima. Vamos simplesmen propagar para eleminar os erros*/
         Departamento dep = new Departamento();
         dep.setId(rs.getInt("DepartamentoId")); /*dep.setId, vai passar para a classe Departamento. getInt vai pegar da consulta um valor inteiro na coluna DepartamentoId */
         dep.setNome(rs.getString("depNome")); /*estou pegando o nome do departamento pelo apelido que dei na consulta*/
@@ -105,8 +182,8 @@ public class VendedorDaoJDBC implements VendedorDao{
     
     
     private Vendedor instanciandoVendedor(ResultSet rs, Departamento dep) throws SQLException {
-                                                                /*Não vamos tratar a exceções que vão ocorrer abaixa, pois já está sendo
-                                                                tratado acima. Vamos simplesment propagar para eleminar os erros*/
+                                                                /*Não vamos tratar a exceção que vão ocorrer abaixo, pois já está sendo
+                                                                tratada acima. Vamos simplesmen propagar para eleminar os erros*/
         
         
         Vendedor obj = new Vendedor();
@@ -120,6 +197,87 @@ public class VendedorDaoJDBC implements VendedorDao{
         de chave estrangeira das tabelas, e sim pelo atributo departamento criado na tabela vendedor*/
     
         return obj;
+    }
+
+    @Override
+    public List<Vendedor> findByDepartamento(Departamento departamento) { /*Vai buscar por departamento*/
+        
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        
+            try{
+            
+                st = conn.prepareStatement(
+                    "select vendedor.*, departamento.nome as DepNome "
+                        +"from vendedor inner join departamento "
+                        +"on vendedor.departamentoId = departamento.Id "
+                        +"where departamentoId = ? "
+                        +"group by nome "    
+                );
+                
+                st.setInt(1, departamento.getId());
+                rs = st.executeQuery();
+                
+                
+                /*O NOSSO OBJETIVO A PARTIR DE AGORA É TER MAIS DE UM VENDEDOR APONTANDO PARA O MESMO DEPARTAMENTO.
+                                
+                                Um vendedor pode estar associado a um ou mais departamentos*/
+                
+                
+                /* A solução comentada abaixo é incorreta pois para cada vendedor (cada linha do ResultSet) eu estaria criando um novo departamento
+                
+                List<Vendedor> list = new ArrayList();
+                
+                while(rs.next()){
+                
+                    Departamento dep = instanciandoDepartamento (rs);
+                    Vendedor obj = instanciandoVendedor (rs, dep);
+                    list.add(obj);
+                }
+                return list
+                
+                */
+                
+                List<Vendedor> list = new ArrayList<>(); /*Um vendedor pode estar associando a mais de um departamento. Por este motivo, o obj
+                vendedor terá que ser uma lista. */
+                
+                Map<Integer, Departamento> map = new HashMap<>();/*Criamos um Map vazio com o objetivo abaixo de guardar todo departamento que instaciarmos*/
+                
+                while(rs.next()){ /*Neste caso, o rs pode receber mais de um registro, por isso, ao contrato do que foi feito no metodo acima "Vendedor findById"
+                    onde só é retornado no maximo um registro, ao invez de um if, nós usamos um while para percorrer todos os registros retornados*/
+                
+                    Departamento dep = map.get(rs.getInt("departamentoId")); /*Toda vez que passar pelo while, estamos testando se o departamento já existe.
+                    Fazemos isso buscando no departamento (rs) o id que foi buscado na consulta acima. Se não existir, o map vai retornar nulo pra variavel dep*/
+                    
+                    if(dep == null){ /*Só vamos instanciar o departamento se o dep for nulo. Pois quer dizer que ele não existe ainda*/
+                    
+                        dep = instanciandoDepartamento(rs); /*Instanciando meu departamento a partir do ResultSet (rs)*/
+                        
+                        map.put(rs.getInt("departamentoId"), dep);/*Estamos salvando o departamento dentro do map para que da proxima vez, o if não retorne null pois já existe*/
+                        /*Lembrando que o primeiro valor do mep entre parentese corresponde a chave e o segundo ao valor. Neste caso, dep é o departamento que vou salvar*/
+                    }
+     
+                    Vendedor obj = instanciandoVendedor(rs, dep); /*Instanciando o vendedor apontando para o meu departamento (dep)*/
+                    
+                    list.add(obj);
+                    
+                }
+                
+                return list;
+            
+            }
+            catch(SQLException e){
+            
+                throw new DbException(e.getMessage());
+            
+            }
+            finally {
+            
+                DB.closeStatement(st);
+                DB.closeResulSet(rs);
+            
+            }
+        
     }
     
 }

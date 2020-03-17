@@ -7,8 +7,10 @@ package application;
 
 import com.mysql.jdbc.Connection;
 import db.DB;
+import java.util.List;
 import model.dao.DaoFabrica;
 import model.dao.VendedorDao;
+import model.entities.Departamento;
 import model.entities.Vendedor;
 
 /**
@@ -34,6 +36,35 @@ public class Program {
         System.out.println(vendedor);
         
         
+        
+        
+        System.out.println("");
+        
+        System.out.println("Teste numero 2: vendedor findByDepartamento");
+        
+        Departamento departamento = new Departamento (4, null);
+        
+        List<Vendedor> list = vendedorDao.findByDepartamento(departamento);
+        
+        for(Vendedor obj : list){
+        
+            System.out.println(obj);
+        
+        }
+        
+        
+        System.out.println("");
+        
+        System.out.println("Teste numero 3: vendedor findAll");
+        
+        
+        list = vendedorDao.findAll();
+        
+        for(Vendedor obj : list){
+        
+            System.out.println(obj);
+        
+        }
         
     }
     

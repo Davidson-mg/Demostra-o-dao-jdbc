@@ -20,5 +20,5 @@ public interface VendedorDao {
     void delete(Integer id);
     Vendedor findById(Integer id); /*Vai pegar o id e consultar no BD se existe esse id. Se não existe, retorna null*/
     List<Vendedor> findAll ();
-    
+    List<Vendedor> findByDepartamento (Departamento departamento);
 }
