@@ -6,8 +6,10 @@
 package model.dao.impl;
 
 import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.Statement;
 import db.DB;
 import java.sql.PreparedStatement;
+import java.sql.Date;
 import db.DbException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,8 +39,56 @@ public class VendedorDaoJDBC implements VendedorDao{
     
     @Override
     public void insert(Vendedor obj) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        PreparedStatement st = null;
+        
+        try{ 
+            st = conn.prepareStatement(
+                    "insert into vendedor (nome, email, dataNascimento, salarioBase, DepartamentoId)  VALUES  (?, ?, ?, ?, ?) ",
+                    Statement.RETURN_GENERATED_KEYS /*vai retornar o ID do novo vendedor inserido*/
+            );
+            
+            st.setString(1, obj.getNome());
+            st.setString(2, obj.getEmail());
+            st.setDate(3, new java.sql.Date(obj.getDataNascimento().getTime()));
+            st.setDouble(4, obj.getSalarioBase());
+            st.setInt(5, obj.getDepartamento().getId());
+            
+            int linhasAfetadas = st.executeUpdate(); /*Vai executar o comando SQL e inserir na variavel*/
+            
+            if (linhasAfetadas > 0){ /*Se as linhas afetadas for maior que zero é pq inseriu*/
+            
+                ResultSet rs = st.getGeneratedKeys();/*ResulSet pode receber mais de um valor tipo um vetor, para caso faça mais de um insert ao mesmo tempo.
+                Vai receber o valor contido no "Statement.RETURN_GENERATED_KEYS" escrito no insert do BD.*/
+                
+                if (rs.next()){
+                    
+                    int id = rs.getInt(1); /*Vai pegar o valor da primeira coluna que é referente ao ID e que é inteiro*/
+                    obj.setId(id); /*Vou atribuir esse ID dentro do meu objeto obj*/
+                    
+                }
+                
+                DB.closeResulSet(rs); /*Apenas fechando o ResultSet. Não estou fechando no finally pq foi usado somente dentro do if*/
+            
+            }
+            else{
+            
+                throw new DbException("Erro: nennhuma linha foi afetada!");
+            
+            }
+            
+        }
+        catch (SQLException e) {
+            throw new DbException (e.getMessage());
+        }
+        finally{
+        
+            DB.closeStatement(st);
+        
+        }
     }
+    
+    
 
     @Override
     public void update(Vendedor obj) {

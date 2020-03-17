@@ -7,6 +7,8 @@ package application;
 
 import com.mysql.jdbc.Connection;
 import db.DB;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import model.dao.DaoFabrica;
 import model.dao.VendedorDao;
@@ -24,7 +26,7 @@ public class Program {
      */
     public static void main(String[] args) {
         
-        
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         
         VendedorDao vendedorDao = DaoFabrica.createVendedorDao(); /*Interface VendedorDao chamando o metodo createVendedorDao da classe DaoFabrica que deve retornar
         um objeto com base em uma consulta do mysql*/
@@ -66,6 +68,16 @@ public class Program {
         
         }
         
+        
+        System.out.println("");
+        
+        System.out.println("Teste numero 4: vendedor insert");
+        
+        Vendedor novoVendedo = new Vendedor(null, "Davidson", "davidson@gmail.com", new Date(), 4000.0, departamento);
+        
+        vendedorDao.insert(novoVendedo);
+        
+        System.out.println("Inserido! Novo Id = " + novoVendedo.getId());
     }
     
 }
