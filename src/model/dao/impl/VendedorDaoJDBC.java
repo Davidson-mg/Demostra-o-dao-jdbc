@@ -92,12 +92,64 @@ public class VendedorDaoJDBC implements VendedorDao{
 
     @Override
     public void update(Vendedor obj) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        PreparedStatement st = null;
+        
+        try{
+        
+            st = conn.prepareStatement(
+                    "update vendedor  set nome = ?, email = ?, dataNascimento = ?, salarioBase = ?, DepartamentoId = ?  where Id = ? "
+                    
+            ); 
+        
+            st.setString(1, obj.getNome());
+            st.setString(2, obj.getEmail());
+            st.setDate(3, new java.sql.Date(obj.getDataNascimento().getTime()));
+            st.setDouble(4, obj.getSalarioBase());
+            st.setInt(5, obj.getDepartamento().getId());
+            st.setInt(6, obj.getId());
+            
+             st.executeUpdate(); 
+           
+            
+        } 
+       catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        finally{
+        
+            DB.closeStatement(st);
+            
+        }
     }
 
     @Override
     public void delete(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        PreparedStatement st = null;
+        try{
+        
+            st = conn.prepareStatement("delete from vendedor where Id = ? ");
+            
+            st.setInt(1, id);
+            
+            int linhas = st.executeUpdate();
+            
+            if (linhas == 0){
+            
+                throw new DbException("Nenhum a linha foi afetada");
+            
+            }
+            
+        } 
+        catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        finally{
+        
+            DB.closeStatement(st);
+            
+        }
+        
     }
     
 

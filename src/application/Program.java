@@ -10,6 +10,7 @@ import db.DB;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import model.dao.DaoFabrica;
 import model.dao.VendedorDao;
 import model.entities.Departamento;
@@ -25,6 +26,8 @@ public class Program {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+       
+        Scanner leia = new Scanner(System.in);
         
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         
@@ -78,6 +81,22 @@ public class Program {
         vendedorDao.insert(novoVendedo);
         
         System.out.println("Inserido! Novo Id = " + novoVendedo.getId());
+        
+        
+        System.out.println("");
+        
+        System.out.println("Teste numero 5: vendedor insert");
+        vendedor = vendedorDao.findById(1);
+        vendedor.setNome("Orinamarona");
+        vendedorDao.update(vendedor);
+        System.out.println("Atualização completa!");
+        
+        System.out.println("");
+        
+        System.out.println("Informe um id para delete");
+        int id = leia.nextInt();
+        vendedorDao.delete(id);
+        System.out.println("Delete completo!");
     }
     
 }
