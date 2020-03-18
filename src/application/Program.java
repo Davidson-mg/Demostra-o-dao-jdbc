@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 import model.dao.DaoFabrica;
+import model.dao.DepartamentoDao;
 import model.dao.VendedorDao;
 import model.entities.Departamento;
 import model.entities.Vendedor;
@@ -33,7 +34,7 @@ public class Program {
         
         VendedorDao vendedorDao = DaoFabrica.createVendedorDao(); /*Interface VendedorDao chamando o metodo createVendedorDao da classe DaoFabrica que deve retornar
         um objeto com base em uma consulta do mysql*/
-        
+    
         System.out.println("Teste numero 1: vendedor findById ");
         
         Vendedor vendedor = vendedorDao.findById(3); /*a consulta terá um filtro onde o id é passado como parametro (where id = ?)*/
@@ -72,6 +73,11 @@ public class Program {
         }
         
         
+        
+        
+        
+        
+        
         System.out.println("");
         
         System.out.println("Teste numero 4: vendedor insert");
@@ -83,16 +89,26 @@ public class Program {
         System.out.println("Inserido! Novo Id = " + novoVendedo.getId());
         
         
+        
+        
+        
+        
+        
         System.out.println("");
         
-        System.out.println("Teste numero 5: vendedor insert");
+        System.out.println("Teste numero 5: vendedor update");
         vendedor = vendedorDao.findById(1);
         vendedor.setNome("Orinamarona");
         vendedorDao.update(vendedor);
         System.out.println("Atualização completa!");
         
+        
+        
+        
+        
         System.out.println("");
         
+        System.out.println("Teste numero 6: Departamento delete");
         System.out.println("Informe um id para delete");
         int id = leia.nextInt();
         vendedorDao.delete(id);

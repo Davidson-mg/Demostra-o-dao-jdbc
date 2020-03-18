@@ -40,7 +40,7 @@ public class VendedorDaoJDBC implements VendedorDao{
     @Override
     public void insert(Vendedor obj) {
         
-        PreparedStatement st = null;
+        PreparedStatement st = null; /*statement serve para lançar uma quary no sql*/
         
         try{ 
             st = conn.prepareStatement(
@@ -92,6 +92,7 @@ public class VendedorDaoJDBC implements VendedorDao{
 
     @Override
     public void update(Vendedor obj) {
+        
         PreparedStatement st = null;
         
         try{
@@ -134,9 +135,11 @@ public class VendedorDaoJDBC implements VendedorDao{
             
             int linhas = st.executeUpdate();
             
+            System.out.println("Feito!");
+            
             if (linhas == 0){
             
-                throw new DbException("Nenhum a linha foi afetada");
+                throw new DbException("Nenhuma linha foi afetada");
             
             }
             
@@ -156,7 +159,9 @@ public class VendedorDaoJDBC implements VendedorDao{
     @Override
     public Vendedor findById(Integer id) { /*Vai buscar por id*/
         PreparedStatement st = null;
-        ResultSet rs = null;
+        ResultSet rs = null; /*Estou excutando a quary e guardando o resultado no ResultSet. ResultSet serve para gerar um obj no formato de tabela semelhante
+        as geradas pelo sql quando fazemos uma consulta*/
+        
             try{
                 
                 st = conn.prepareStatement( 
@@ -235,8 +240,8 @@ public class VendedorDaoJDBC implements VendedorDao{
                 
                 Map<Integer, Departamento> map = new HashMap<>();/*Criamos um Map vazio com o objetivo abaixo de guardar todo departamento que instaciarmos*/
                 
-                while(rs.next()){ /*Neste caso, o rs pode receber mais de um registro, por isso, ao contrato do que foi feito no metodo acima "Vendedor findById"
-                    onde só é retornado no maximo um registro, ao invez de um if, nós usamos um while para percorrer todos os registros retornados*/
+                while(rs.next()){ /*next() move para o proximo e retorna null se estiver vazio. Neste caso, o rs pode receber mais de um registro, por isso, 
+                    ao contrato do que foi feito no metodo acima "Vendedor findById" onde só é retornado no maximo um registro, ao invez de um if, nós usamos um while para percorrer todos os registros retornados*/
                 
                     Departamento dep = map.get(rs.getInt("departamentoId")); /*Toda vez que passar pelo while, estamos testando se o departamento já existe.
                     Fazemos isso buscando no departamento (rs) o id que foi buscado na consulta acima. Se não existir, o map vai retornar nulo pra variavel dep*/
